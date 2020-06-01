@@ -37,7 +37,9 @@ namespace ExceptionHelper
         {
             if (_behaviors.ContainsKey(e.GetType()))
                 _behaviors[e.GetType()].Invoke(e);
-            else 
+            else if(_behaviors.ContainsKey(typeof(Exception)))
+                _behaviors[typeof(Exception)].Invoke(e);
+            else
                 OnException(e);
 
         }
