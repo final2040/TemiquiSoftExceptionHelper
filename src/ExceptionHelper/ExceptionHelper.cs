@@ -1,11 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace ExceptionHelper
 {
     public class ExceptionHelper
     {
-        private readonly Dictionary<Type, Action<Exception>> _behaviors = new Dictionary<Type, Action<Exception>>();
+        private readonly IExceptionHandlers _exceptionHandlers;
+
+        public ExceptionHelper() : this(new DefaultConfiguration(null))
+        {
+
+        }
+        public ExceptionHelper(IExceptionHandlers configuration)
+        {
+            _exceptionHandlers = configuration;
+        }
 
         public T Try<T>(Func<T> function)
         {
@@ -35,13 +43,10 @@ namespace ExceptionHelper
 
         private void HandleException(Exception e)
         {
-            if (_behaviors.ContainsKey(e.GetType()))
-                _behaviors[e.GetType()].Invoke(e);
-            else if(_behaviors.ContainsKey(typeof(Exception)))
-                _behaviors[typeof(Exception)].Invoke(e);
+            if ( _exceptionHandlers.IsThereABehaviorFor(e.GetType()) )
+                _exceptionHandlers.GetBehaviorFor(e).Invoke(e);
             else
                 OnException(e);
-
         }
 
         protected virtual void OnException(Exception e)
@@ -51,19 +56,12 @@ namespace ExceptionHelper
 
         public void AddBehaviorFor(Type type, Action<Exception> handler)
         {
-            try
-            {
-                _behaviors.Add(type, handler);
-            }
-            catch (ArgumentException e)
-            {
-                throw new InvalidOperationException($"A behavior for {type.Name} exception has been already defined.");
-            }
+            _exceptionHandlers.AddBehavior(type, handler);
         }
 
         public void AddBehaviorFor<T>(Action<Exception> behavior)
         {
-            AddBehaviorFor(typeof(T), behavior);
+            _exceptionHandlers.AddBehaviorFor<T>(behavior);
         }
     }
 }
