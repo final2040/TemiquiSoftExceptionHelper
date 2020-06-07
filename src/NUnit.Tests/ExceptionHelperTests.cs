@@ -142,7 +142,7 @@ namespace ExceptionHelper.Tests
         /// <summary>
         /// Given: code is called using try
         /// When: code that returns a value is provided
-        /// Then: should execute the providen code and return the valur
+        /// Then: should execute the providen code and return the value
         /// </summary>
         [Test()]
         public void Try_ShouldExecuteGivenCodeAndReturnResult()
@@ -154,6 +154,27 @@ namespace ExceptionHelper.Tests
 
             // act
             current = helper.Try(() => true);
+
+            // assert
+            Assert.That(current, Is.EqualTo(expected));
+        }
+
+        /// <summary>
+        /// Given: code is called using try
+        /// When: code throws an unknown exception and Exception was provided
+        /// Then: should execute code from Exception
+        /// </summary>
+        [Test()]
+        public void Try_ShouldExecuteExceptionCodeIfExceptionTypeIsUnknown()
+        {
+            // arrange
+            var helper = new ExceptionHelper();
+            var current = false;
+            var expected = true;
+            helper.AddBehaviorFor<Exception>((e) => current = true);
+
+            // act
+            helper.Try(() => throw new ArgumentException());
 
             // assert
             Assert.That(current, Is.EqualTo(expected));
